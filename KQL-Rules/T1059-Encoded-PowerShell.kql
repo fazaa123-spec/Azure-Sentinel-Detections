@@ -1,0 +1,7 @@
+// Rule: Detect Encoded PowerShell - T1059.001
+// MITRE: Execution - Command and Scripting Interpreter: PowerShell
+// Severity: High
+SecurityEvent
+| where EventID == 4688 and Process has_any ("powershell.exe", "pwsh.exe")
+| where CommandLine has "-enc" or CommandLine has "-EncodedCommand"
+| project TimeGenerated, Computer, Account, CommandLine, ParentProcessName
